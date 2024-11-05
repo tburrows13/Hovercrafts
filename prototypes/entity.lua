@@ -166,7 +166,6 @@ if missile_hovercraft_activated then
   mcraft_gun.name = "hovercraft-missile-turret"
   mcraft_gun.icon = HCGRAPHICS .. "icons/hovercraft-missile-turret-icon.png"
   mcraft_gun.icon_size = 64
-  mcraft_gun.icon_mipmaps = 0
   mcraft_gun.order = "d[rocket-launcher]"
   mcraft_gun.attack_parameters = {
     type = "projectile",

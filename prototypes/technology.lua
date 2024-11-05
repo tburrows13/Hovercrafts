@@ -10,7 +10,7 @@ data:extend({
     type = "technology",
     name = "hovercraft",
     icon = HCGRAPHICS .. "technology/hcraft_tech.png",
-    icon_size = 256, icon_mipmaps = 1,
+    icon_size = 256,
     effects = {
       unlock("hovercraft")
     },
@@ -34,7 +34,7 @@ if missile_hovercraft_activated then
       type = "technology",
       name = "missile-hovercraft",
       icon = HCGRAPHICS .. "technology/mcraft_tech.png",
-      icon_size = 256, icon_mipmaps = 1,
+      icon_size = 256,
       effects = {
         unlock("missile-hovercraft")
       },
@@ -61,7 +61,7 @@ if electric_hovercraft_activated then
       type = "technology",
       name = "electric-hovercraft",
       icon = HCGRAPHICS .. "technology/ecraft_tech.png",
-      icon_size = 256, icon_mipmaps = 1,
+      icon_size = 256,
       effects = {
         unlock("electric-hovercraft"),
         unlock("ehvt-equipment"),
@@ -89,7 +89,7 @@ if laser_hovercraft_activated then
       type = "technology",
       name = "laser-hovercraft",
       icon = HCGRAPHICS .. "technology/lcraft_tech.png",
-      icon_size = 256, icon_mipmaps = 1,
+      icon_size = 256,
       effects = {
         unlock("laser-hovercraft"),
         unlock("lcraft-charger"),
