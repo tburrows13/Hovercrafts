@@ -24,19 +24,17 @@ end
 
 -- aesthetic ripple
 local function make_ripple(player)
-  local p = player.position
-  local surface = player.surface
-  local tile = surface.get_tile(p)
-  if tile and isWaterTile[tile.name] then
-    local r = 2.5
-    local area = {{p.x - r, p.y - r}, {p.x + r, p.y + r}}
-    if surface.count_tiles_filtered{area = area, name = "water", limit = 25} +
-      surface.count_tiles_filtered{area = area, name = "deepwater", limit = 25} >= 25
-    then      -- only ripple if in large water patch
-      if player.driving then
+  local vehicle = player.vehicle
+  if (vehicle and isHovercraft[vehicle.name]) then
+    if isWaterTile[vehicle.surface.get_tile(vehicle.position).name] then
+      local p = vehicle.position
+      local surface = vehicle.surface
+      local r = 2.5
+      local area = {{p.x - r, p.y - r}, {p.x + r, p.y + r}}
+      if surface.count_tiles_filtered{area = area, name = "water", limit = 25} +
+        surface.count_tiles_filtered{area = area, name = "deepwater", limit = 25} >= 25
+      then      -- only ripple if in large water patch
         surface.create_entity{name = "water-ripple" .. math.random(1, 4) .. "-smoke", position={p.x,p.y+.75}}
-      else
-        surface.create_entity{name = "water-ripple" .. math.random(1, 4) .. "-smoke", position={p.x,p.y}}
       end
     end
   end
@@ -45,9 +43,9 @@ end
 
 -- aesthetic splash
 local function make_splash(player)
-  if isWaterTile[player.surface.get_tile(player.position).name] then
-    local vehicle = player.vehicle
-    if (vehicle and isHovercraft[vehicle.name]) then
+  local vehicle = player.vehicle
+  if (vehicle and isHovercraft[vehicle.name]) then
+    if isWaterTile[vehicle.surface.get_tile(vehicle.position).name] then
       local speed = 1+math.min(9,math.floor(math.abs(vehicle.speed)*9))
       player.surface.create_entity{name = "water-splash-smoke-"..speed, position = {vehicle.position.x+0.2, vehicle.position.y+0.5}}
     end
@@ -58,7 +56,7 @@ end
 -- when moving about in a hovercraft
 script.on_event(defines.events.on_player_changed_position, function(e)
   local player = game.get_player(e.player_index)
-  if player.character and not storage.mods_installed.canal_builder then
+  if not storage.mods_installed.canal_builder then
     make_ripple(player)
     make_splash(player)
   end
@@ -80,7 +78,7 @@ local function tickHandler(e)
   end
   if eTick % 120 == 4 then
     for _,player in pairs(game.connected_players) do
-      if player.character and not storage.mods_installed.canal_builder then
+      if not storage.mods_installed.canal_builder then
         make_ripple(player)
       end
     end
