@@ -6,6 +6,9 @@ data:extend({
     icon_size = 64,
     subgroup = subgroup_hovercrafts,
     order = "b[personal-transport]-c[hovercraft]",
+    inventory_move_sound = item_sounds.vehicle_inventory_move,
+    pick_sound = item_sounds.vehicle_inventory_pickup,
+    drop_sound = item_sounds.vehicle_inventory_move,
     place_result = "hovercraft",
     stack_size = 1
   },
@@ -35,6 +38,9 @@ if missile_hovercraft_activated then
       icon_size = 64,
       subgroup = subgroup_hovercrafts,
       order = "b[personal-transport]-d[missile-hovercraft]",
+      inventory_move_sound = item_sounds.vehicle_inventory_move,
+      pick_sound = item_sounds.vehicle_inventory_pickup,
+      drop_sound = item_sounds.vehicle_inventory_move,  
       place_result = "missile-hovercraft",
       stack_size = 1
     },
@@ -68,6 +74,9 @@ if electric_hovercraft_activated then
       icon_size = 64,
       subgroup = subgroup_hovercrafts,
       order = "b[personal-transport]-e[electric-hovercraft]",
+      inventory_move_sound = item_sounds.vehicle_inventory_move,
+      pick_sound = item_sounds.vehicle_inventory_pickup,
+      drop_sound = item_sounds.vehicle_inventory_move,  
       place_result = "electric-hovercraft",
       stack_size = 1
     },
@@ -97,6 +106,9 @@ if laser_hovercraft_activated then
       icon_size = 64,
       subgroup = subgroup_hovercrafts,
       order = "d[personal-transport]-d",
+      inventory_move_sound = item_sounds.vehicle_inventory_move,
+      pick_sound = item_sounds.vehicle_inventory_pickup,
+      drop_sound = item_sounds.vehicle_inventory_move,  
       place_result = "laser-hovercraft",
       stack_size = 1
     },
