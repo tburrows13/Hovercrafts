@@ -1,13 +1,21 @@
 -- control.lua
-local drifting_multipliers = {
-  ["hovercraft"] = 0.95, --2500  (weight)
-  ["missile-hovercraft"] = 0.97, --10000 (weight)
-  ["electric-hovercraft"] = 0.97, --7500  (weight)
-  ["laser-hovercraft"] = 0.95, --1500  (weight)
-}
+--local drifting_multipliers = { --unused?
+--  ["hcraft-entity"] = 0.95, --2500  (weight)
+--  ["mcraft-entity"] = 0.97, --10000 (weight)
+--  ["ecraft-entity"] = 0.97, --7500  (weight)
+--  ["lcraft-entity"] = 0.95, --1500  (weight)
+--}
 local isWaterTile = {
+  ["water-wube"] = true,
+  ["deepwater"] = true,
+  ["deepwater-green"] = true,
   ["water"] = true,
-  ["deepwater"] = true
+  ["water-green"] = true,
+  ["water-shallow"] = true,
+  ["water-mud"] = true,
+  ["oil-ocean-deep"] = true,
+  ["tile"] = true,
+  ["wetland-jellynut"] = true,
 }
 local isHovercraft = {
   ["hovercraft"] = true,
@@ -15,6 +23,16 @@ local isHovercraft = {
   ["missile-hovercraft"] = true,
   ["laser-hovercraft"] = true
 }
+local function print(...)
+	tbl = {...}
+	local concat = ""
+	for a,b in pairs(tbl) do
+		concat = concat..b.."\t"
+	end
+	concat=concat:sub(1,-2)
+	game.print(concat)
+end
+
 
 function distance(pos1,pos2)
   local x = (pos1.x-pos2.x)^2
@@ -40,7 +58,6 @@ local function make_ripple(player)
   end
 end
 
-
 -- aesthetic splash
 local function make_splash(player)
   local vehicle = player.vehicle
@@ -62,6 +79,15 @@ script.on_event(defines.events.on_player_changed_position, function(e)
   end
 end)
 
+function projection(orientation, distance, position)
+  if not position then position = {x=0,y=0} end
+  local temp_x = math.sin((orientation+0)*2*math.pi)*distance
+  local temp_y =  math.sin((orientation+0.75)*2*math.pi)*distance
+  return{x = temp_x+position.x, y = temp_y+position.y}
+end
+function orientation_from_coords(coords)
+  return (math.atan2(coords.x,coords.y)/math.pi/2-0.5)*-1
+end
 
 -- Now and then create smoke, ripple
 local function tickHandler(e)
@@ -84,54 +110,168 @@ local function tickHandler(e)
     end
   end
 
-  if storage.settings["hovercraft-drifting"] then
+  if storage.settings["hovercraft-drifting"] ~= "off" then
     for unit_number, tbl in pairs(storage.hovercrafts) do
       if tbl.entity and tbl.entity.valid then
-        local pos = tbl.entity.position
-        local speed = tbl.entity.speed
-        if speed == 0 then
-          tbl.idle_ticks = tbl.idle_ticks + 1
-        else
-          tbl.idle_ticks = 0
-        end
-        if tbl.idle_ticks < 120 then
-        --local surroundings = #tbl.entity.surface.find_entities_filtered {area = {{pos.x-1, pos.y-1}, {pos.x+1, pos.y+1}}}
-        --if speed ~=0 or surroundings == 1 then
-          local drift_x = pos.x-tbl.position.x
-          local drift_y = pos.y-tbl.position.y
-          drift_x = drift_x*0.05+tbl.drift.x*0.95
-          drift_y = drift_y*0.05+tbl.drift.y*0.95
-          if (drift_x^2+drift_y^2)^0.5 >0.001 then
-            local new_pos = {x = tbl.position.x+drift_x, y = tbl.position.y+drift_y}
-            tbl.entity.teleport(-5,-5)
-            local cliffsize = 2
-            local cliffs = tbl.entity.surface.find_entities_filtered{ type = "cliff", area = {{new_pos.x-cliffsize, new_pos.y-cliffsize}, {new_pos.x+cliffsize, new_pos.y+cliffsize}} }
-            local rocks = tbl.entity.surface.find_entities_filtered{ type = "simple-entity", area = {{new_pos.x-1, new_pos.y-1}, {new_pos.x+1, new_pos.y+1}} }
-            if #cliffs > 0 or #rocks > 0 then
-              local noncolliding = tbl.entity.surface.find_non_colliding_position("hovercraft-collision", new_pos, 0.1, 0.03)
-              if noncolliding and distance(noncolliding,new_pos) < 0.04 then
-                tbl.entity.teleport(noncolliding)
-                tbl.idle_ticks = 120
-              else
-                tbl.entity.teleport(5,5)
-                tbl.drift = {x=0,y=0}
-                tbl.idle_ticks = 120
-              end
-            else
-              if tbl.entity.surface.can_place_entity{name = "hovercraft-collision", position = new_pos, direction = tbl.entity.orientation} then
-                tbl.entity.teleport(new_pos)
-              else
-                tbl.entity.teleport(5,5)
+        local entity = tbl.entity
+        local pos = entity.position
+        local speed = entity.speed
+        if settings.startup["hovercraft-drifting"].value == "new" then
+		      if tbl.drift.x~=0 or tbl.drift.y~=0 or entity.get_driver() then
+		        tbl.idle_ticks = 0
+
+			      -- calculating virtual acceleration:
+            local thrust_pct = entity.burner.heat/entity.burner.heat_capacity
+			      if entity.burner.currently_burning then
+				      thrust_pct = 1
+			      end
+            local mass = entity.prototype.weight
+            local native_acceleration = entity.prototype.consumption * entity.prototype.effectivity
+            local fuel_acceleration_mult = 1 --Note: fuel_speed_mult only affects trains
+            if entity.burner.currently_burning then -- ".name" is the item prototype in 2.0 for some reason:
+              fuel_acceleration_mult = entity.burner.currently_burning.name.fuel_acceleration_multiplier + entity.burner.currently_burning.name.fuel_acceleration_multiplier_quality_bonus * entity.burner.currently_burning.quality.level
+            end
+            local exoskeleton_mult = 1
+            if entity.grid then
+              for _, eq in pairs(entity.grid.equipment) do
+                if eq.type == "movement-bonus-equipment" then
+                  local charge = eq.energy / eq.max_energy
+                  exoskeleton_mult = exoskeleton_mult + eq.movement_bonus * charge
+                end
               end
             end
-            tbl.drift = {x = drift_x, y = drift_y}
+
+            -- since we're still moving, this spot is 98% safe:
+            if math.abs(entity.speed) >0.001 then
+              tbl.last_safe_pos = entity.position
+              tbl.last_safe_orientation = entity.orientation
+            end
+
+            --vanilla speeds: (vanilla has slower acceleration)
+            --solid fuel: 129
+                  --rocket fuel: 158.7
+            --nuclear fuel: 187
+            --laser: 151.6 (3 exoskeletons: 209)
+            --electric: 217 (3 exoskeletons: 300)
+            if entity.speed == 0  and math.abs(tbl.last_speed) >0.001 then -- crashed/stopped:
+              entity.teleport(tbl.last_safe_pos)
+              entity.orientation = tbl.last_safe_orientation
+              tbl.last_pos = tbl.last_safe_pos
+              tbl.last_speed = 0
+              tbl.drift = {x=0,y=0}
+              if math.abs(tbl.last_speed) >0.01 then
+                --game.print("crash")
+              end
+            elseif math.abs(entity.speed) >0.005 then --moving
+			        -- preventing hovercraft from after-drifting too much with 1 km/h; calculating slowdown_x and slowdow_y for friction
+              local slowdown_x = tbl.drift.x >=0 and 0.0005 or -0.0005
+              local slowdown_y = tbl.drift.y >=0 and 0.0005 or -0.0005
+              local x_y_factor = math.max(0.0001,math.abs(tbl.drift.x))/math.max(0.0001,math.abs(tbl.drift.y))
+              if x_y_factor>1 then
+                slowdown_y = slowdown_y/x_y_factor
+              else
+                slowdown_x = slowdown_x*x_y_factor
+              end
+              if math.abs(entity.speed) < 0.5 then
+                slowdown_x = slowdown_x*(1-math.abs(entity.speed)/0.5)
+                slowdown_y = slowdown_y*(1-math.abs(entity.speed)/0.5)
+			        end
+
+			        -- apply friction:
+              if entity.get_driver() then
+                tbl.drift.x = tbl.drift.x *0.995 -slowdown_x
+                tbl.drift.y = tbl.drift.y *0.995 -slowdown_y
+              else
+                tbl.drift.x = tbl.drift.x *0.97 -slowdown_x
+                tbl.drift.y = tbl.drift.y *0.97 -slowdown_y
+              end
+
+              -- apply thrust:
+              local riding_state = entity.riding_state.acceleration
+              if riding_state == defines.riding.acceleration.braking then
+                if entity.speed>0 then
+                  tbl.drift = projection(entity.orientation,-thrust_pct*native_acceleration*fuel_acceleration_mult*exoskeleton_mult/mass/((0.6+entity.speed)*700),tbl.drift)
+                else
+                  tbl.drift = projection(entity.orientation, thrust_pct*native_acceleration*fuel_acceleration_mult*exoskeleton_mult/mass/((0.6+entity.speed)*700),tbl.drift)
+                end
+              elseif riding_state == defines.riding.acceleration.accelerating then
+                  tbl.drift = projection(entity.orientation, thrust_pct*native_acceleration*fuel_acceleration_mult*exoskeleton_mult/mass/((0.6+entity.speed)*700),tbl.drift)
+              elseif riding_state == defines.riding.acceleration.reversing then
+                  tbl.drift = projection(entity.orientation,-thrust_pct*native_acceleration*fuel_acceleration_mult*exoskeleton_mult/mass/((0.6+entity.speed)*700),tbl.drift)
+              end
+
+              -- collision with destructables:
+              if entity.speed > 0 and entity.speed < tbl.last_speed then
+              tbl.drift.x = tbl.drift.x * entity.speed / tbl.last_speed
+              tbl.drift.y = tbl.drift.y * entity.speed / tbl.last_speed
+              end
+
+			        -- drift: (100% drift, zero vanilla motion)
+              local new_pos = {x = tbl.last_pos.x+tbl.drift.x, y = tbl.last_pos.y+ tbl.drift.y}
+              entity.teleport(new_pos)
+
+			        -- calculating real speed from drift and setting it on the entity for collision damage:
+              local drift_speed = (tbl.drift.x^2+tbl.drift.y^2)^0.5
+              entity.speed = drift_speed
+
+			        -- data
+              tbl.last_speed = drift_speed
+			        tbl.last_pos = new_pos
+              tbl.last_orientation = entity.orientation
+			      else --not moving
+			      end
+          else
+            tbl.idle_ticks = 120
+          end
+		      tbl.position = tbl.entity.position
+        else  --old drifting:
+          if speed == 0 and (tbl.drift.x^2+tbl.drift.y^2)^0.5 <0.001 then
+            tbl.idle_ticks = tbl.idle_ticks + 1
+          else
+            tbl.idle_ticks = 0
+          end
+          if tbl.idle_ticks < 120 then
+            --local surroundings = #tbl.entity.surface.find_entities_filtered {area = {{pos.x-1, pos.y-1}, {pos.x+1, pos.y+1}}}
+            --if speed ~=0 or surroundings == 1 then
+            local drift_x = pos.x-tbl.position.x
+            local drift_y = pos.y-tbl.position.y
+            drift_x = drift_x*0.05+tbl.drift.x*0.95
+            drift_y = drift_y*0.05+tbl.drift.y*0.95
+            if (drift_x^2+drift_y^2)^0.5 >0.001 then
+              local new_pos = {x = tbl.position.x+drift_x, y = tbl.position.y+drift_y}
+              tbl.entity.teleport(-5,-5)
+              local cliffsize = 2
+              local cliffs = tbl.entity.surface.find_entities_filtered{ type = "cliff", area = {{new_pos.x-cliffsize, new_pos.y-cliffsize}, {new_pos.x+cliffsize, new_pos.y+cliffsize}} }
+              local rocks = tbl.entity.surface.find_entities_filtered{ type = "simple-entity", area = {{new_pos.x-1, new_pos.y-1}, {new_pos.x+1, new_pos.y+1}} }
+              if #cliffs > 0 or #rocks > 0 then
+                local noncolliding = tbl.entity.surface.find_non_colliding_position("hovercraft-collision", new_pos, 0.1, 0.03)
+                if noncolliding and distance(noncolliding,new_pos) < 0.04 then
+                  tbl.entity.teleport(noncolliding)
+                  tbl.idle_ticks = 120
+                else
+                  tbl.entity.teleport(5,5)
+                  tbl.drift = {x=0,y=0}
+                  tbl.idle_ticks = 120
+                end
+              else
+                if tbl.entity.surface.can_place_entity{name = "hovercraft-collision", position = new_pos, direction = tbl.entity.orientation} then
+                  tbl.entity.teleport(new_pos)
+                else
+                  tbl.entity.teleport(5,5)
+                end
+              end
+              tbl.drift = {x = drift_x, y = drift_y}
+            else
+              tbl.drift = {x = 0, y = 0}
+            end
           else
             tbl.drift = {x = 0, y = 0}
           end
-        else
-          tbl.drift = {x = 0, y = 0}
-        end
-        tbl.position = tbl.entity.position
+          tbl.position = tbl.entity.position
+          tbl.last_pos = tbl.position
+          tbl.last_safe_pos = tbl.position
+          tbl.last_safe_orientation = tbl.entity.orientation
+		    end
       else
         storage.hovercrafts[unit_number] = nil
       end
@@ -162,7 +302,7 @@ end
 
 local function update_storage_state()
   storage.settings = {}
-  storage.settings["hovercraft-drifting"] = settings.global["hovercraft-drifting"].value
+  storage.settings["hovercraft-drifting"] = settings.startup["hovercraft-drifting"].value
   storage.mods_installed = {}
   storage.mods_installed.laser_tanks = script.active_mods["laser_tanks"] or script.active_mods["laser_tanks_updated"]
 
@@ -178,14 +318,9 @@ script.on_init(function()
   --[[if script.active_mods["electric-vehicles-lib-reborn"] or script.active_mods["laser_tanks"] and settings.startup["lasertanks-electric-engine"].value then
     remote.call("electric-vehicles-lib", "register-transformer", {name = "ehvt-equipment"})
   end]]--
-  storage.e_vehicles = { }
-  storage.braking_trains = { }
-  storage.braking_vehicles = { }
-  storage.transformers = { }
-  storage.brakes = { }
   storage.vehicles={}
   storage.hovercrafts = {}
-  storage.version = 10
+  storage.version = 11
   update_storage_state()
 end)
 
@@ -197,11 +332,6 @@ script.on_configuration_changed(function()
     --if script.active_mods["electric-vehicles-lib-reborn"] then
     --  remote.call("electric-vehicles-lib", "register-transformer", {name = "ehvt-equipment"})
     --end
-    storage.e_vehicles = {}
-    storage.braking_trains = {}
-    storage.braking_vehicles = {}
-    storage.transformers = {}
-    storage.brakes = {}
     storage.vehicles = {}
     storage.hovercrafts = {}
     storage.version = 9
@@ -227,16 +357,23 @@ script.on_configuration_changed(function()
     end
     storage.version = 10
   end
+  if storage.version < 11 then
+    for unit_number, tbl in pairs(storage.hovercrafts) do
+        storage.hovercrafts[unit_number].last_safe_pos = tbl.entity.position
+        storage.hovercrafts[unit_number].last_safe_orientation = tbl.entity.orientation
+    end
+    storage.version = 11
+  end
   update_storage_state()
 end)
 
-script.on_event(defines.events.on_built_entity, function(event)
+script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_entity}, function(event)
   if event.entity.name == "laser-hovercraft" then
     table.insert(storage.vehicles,event.entity)
   end
   if isHovercraft[event.entity.name] then
     --collision.set_driver(event.entity.surface.create_entity{name = "character", position = event.entity.position})
-    storage.hovercrafts[event.entity.unit_number] = {entity = event.entity,drift={x=0,y=0}, last_speed = 0, collision = collision, last_pos = event.entity.position, position = event.entity.position,idle_ticks = 0}-- direction = 0, speed = 0}
+    storage.hovercrafts[event.entity.unit_number] = {entity = event.entity, drift={x=0,y=0}, last_speed = 0, collision = collision, last_pos = event.entity.position, position = event.entity.position, idle_ticks = 0}-- direction = 0, speed = 0}
   end
 end)
 

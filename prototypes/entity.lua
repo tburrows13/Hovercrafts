@@ -23,7 +23,7 @@ hcraft_entity.name = "hovercraft"
 hcraft_entity.icon = HCGRAPHICS .. "icons/hovercraft_icon.png"
 hcraft_entity.icon_size = 64
 hcraft_entity.corpse = "hovercraft-remnants"
-hcraft_entity.braking_power = "1200kW"
+hcraft_entity.braking_power = settings.startup["hovercraft-drifting"].value == "new" and "1kW" or "1200kW"
 hcraft_entity.consumption = "250kW"
 hcraft_entity.selection_box = {{-1, -1.2}, {1, 1.2}}
 hcraft_entity.collision_box = {{-0.7, -0.9}, {0.7, 0.9}}
@@ -113,7 +113,7 @@ if missile_hovercraft_activated then
   -- Mcraft entity
   local mcraft_entity = table.deepcopy(data.raw.car["hovercraft"])
   mcraft_entity.name = "missile-hovercraft"
-  mcraft_entity.braking_power = "1500kW"
+  mcraft_entity.braking_power = settings.startup["hovercraft-drifting"].value == "new" and "1kW" or "1500kW"
   mcraft_entity.consumption = "450kW"
   mcraft_entity.effectivity = 1.1
   mcraft_entity.max_health = 1200
@@ -190,9 +190,9 @@ if electric_hovercraft_activated then
   ecraft_entity.name = "electric-hovercraft"
   ecraft_entity.icon = HCGRAPHICS .. "icons/hovercraft_ecraft_icon.png"
   ecraft_entity.icon_size = 64
-  ecraft_entity.braking_power = "1000kW"
+  ecraft_entity.braking_power = settings.startup["hovercraft-drifting"].value == "new" and "1kW" or "1000kW"
   ecraft_entity.consumption = "6MW"
-  ecraft_entity.effectivity = 0.11
+  ecraft_entity.effectivity = settings.startup["hovercraft-drifting"].value == "new" and 0.12 or 0.11
   ecraft_entity.max_health = 250
   ecraft_entity.rotation_speed = 0.0075
   ecraft_entity.weight = 1500
@@ -227,7 +227,7 @@ if laser_hovercraft_activated then
   lcraft_entity.name = "laser-hovercraft"
   lcraft_entity.icon = HCGRAPHICS .. "icons/hovercraft_lcraft_icon.png"
   lcraft_entity.icon_size = 64
-  lcraft_entity.effectivity = 0.20
+  lcraft_entity.effectivity = 0.2
   lcraft_entity.max_health = 800
   lcraft_entity.rotation_speed = 0.0050
   lcraft_entity.weight = 7500
