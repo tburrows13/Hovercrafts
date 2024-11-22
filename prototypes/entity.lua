@@ -230,7 +230,9 @@ if electric_hovercraft_activated then
       filename = "__Hovercrafts__/audio/vehicle-motor.ogg",
       volume = 0.5
     },
-    match_speed_to_activity = false
+    match_speed_to_activity = false,
+    fade_in_ticks = 15,
+    fade_out_ticks = 15,
   }
   ecraft_entity.energy_source =
   {
@@ -261,7 +263,7 @@ if laser_hovercraft_activated then
     fuel_categories = {"electrical"},
     fuel_inventory_size = 0,
   }
-  lcraft_entity.braking_power = "1250kW"
+  lcraft_entity.braking_power = settings.startup["hovercraft-drifting"].value == "new" and "1kW" or "1250kW"
   lcraft_entity.consumption = "8MW"
   lcraft_entity.sound_no_fuel = {
     {

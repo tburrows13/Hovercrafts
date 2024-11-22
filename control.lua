@@ -416,7 +416,7 @@ script.on_nth_tick(3, function(event)
     i = 0
     --maxruns = math.min(1,player_count) --max 20/s
     while i< player_count and storage.iterate_players do
-      if game.connected_players[storage.iterate_players].character then
+      if game.connected_players[storage.iterate_players].character and game.connected_players[storage.iterate_players].controller_type == defines.controllers.character then
         local playerid = storage.iterate_players
         local techlevel = 0
         if game.connected_players[playerid].force.technologies["laser-rifle-1"].researched then
