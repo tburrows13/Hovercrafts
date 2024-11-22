@@ -5,18 +5,6 @@
 --  ["ecraft-entity"] = 0.97, --7500  (weight)
 --  ["lcraft-entity"] = 0.95, --1500  (weight)
 --}
-local isWaterTile = {
-  ["water-wube"] = true,
-  ["deepwater"] = true,
-  ["deepwater-green"] = true,
-  ["water"] = true,
-  ["water-green"] = true,
-  ["water-shallow"] = true,
-  ["water-mud"] = true,
-  ["oil-ocean-deep"] = true,
-  ["tile"] = true,
-  ["wetland-jellynut"] = true,
-}
 local isHovercraft = {
   ["hovercraft"] = true,
   ["electric-hovercraft"] = true,
@@ -44,13 +32,13 @@ end
 local function make_ripple(player)
   local vehicle = player.vehicle
   if (vehicle and isHovercraft[vehicle.name]) then
-    if isWaterTile[vehicle.surface.get_tile(vehicle.position).name] then
+    local tile = vehicle.surface.get_tile(vehicle.position)
+    if tile.valid and storage.is_water_tile[tile.name] then
       local p = vehicle.position
       local surface = vehicle.surface
       local r = 2.5
       local area = {{p.x - r, p.y - r}, {p.x + r, p.y + r}}
-      if surface.count_tiles_filtered{area = area, name = "water", limit = 25} +
-        surface.count_tiles_filtered{area = area, name = "deepwater", limit = 25} >= 25
+      if surface.count_tiles_filtered{area = area, name = storage.water_tiles, limit = 25} >= 25
       then      -- only ripple if in large water patch
         surface.create_entity{name = "water-ripple" .. math.random(1, 4) .. "-smoke", position={p.x,p.y+.75}}
       end
@@ -62,7 +50,8 @@ end
 local function make_splash(player)
   local vehicle = player.vehicle
   if (vehicle and isHovercraft[vehicle.name]) then
-    if isWaterTile[vehicle.surface.get_tile(vehicle.position).name] then
+    local tile = vehicle.surface.get_tile(vehicle.position)
+    if tile.valid and storage.is_water_tile[tile.name] then
       local speed = 1+math.min(9,math.floor(math.abs(vehicle.speed)*9))
       player.surface.create_entity{name = "water-splash-smoke-"..speed, position = {vehicle.position.x+0.2, vehicle.position.y+0.5}}
     end
@@ -308,6 +297,16 @@ local function update_storage_state()
 
   -- check for other mods that make water effects
   storage.mods_installed.canal_builder = remote.interfaces["CanalBuilder"] and remote.interfaces["CanalBuilder"]["exists"]
+
+  storage.is_water_tile = {}
+  storage.water_tiles = {}
+  for name, tile_prototype in pairs(prototypes.tile) do
+    local layers = tile_prototype.collision_mask.layers
+    if layers and layers["water_tile"] and not layers["lava_tile"] then
+      storage.is_water_tile[name] = true
+      table.insert(storage.water_tiles, name)
+    end
+  end
 end
 script.on_event(defines.events.on_runtime_mod_setting_changed, update_storage_state)
 
