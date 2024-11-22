@@ -134,7 +134,6 @@ if missile_hovercraft_activated then
   mcraft_entity.energy_source = {
     type = "burner",
     fuel_categories = {"chemical"},
-    effectivity = 1,
     fuel_inventory_size = 2,
   }
   mcraft_entity.guns = {"hovercraft-missile-turret"}
@@ -216,7 +215,7 @@ if electric_hovercraft_activated then
   ecraft_entity.energy_source =
   {
     type = "burner",
-    effectivity = nil,
+    fuel_categories = {"electrical"},
     fuel_inventory_size = 0,
   }
   data:extend({ecraft_entity})
@@ -239,7 +238,7 @@ if laser_hovercraft_activated then
   lcraft_entity.energy_source =
   {
     type = "burner",
-    effectivity = nil,
+    fuel_categories = {"electrical"},
     fuel_inventory_size = 0,
   }
   lcraft_entity.braking_power = "1250kW"

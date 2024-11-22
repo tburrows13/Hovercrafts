@@ -111,8 +111,8 @@ if laser_hovercraft_activated then
       },
       energy_source = {
         type = "electric",
-        buffer_capacity = "2250KJ",
-        input_flow_limit = "750KW",
+        buffer_capacity = "2250kJ",
+        input_flow_limit = "750kW",
         drain = "0W",
         output_flow_limit = "0W",
         usage_priority = "primary-input"

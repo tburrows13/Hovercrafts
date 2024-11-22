@@ -133,7 +133,7 @@ if laser_hovercraft_activated then
       icon = HCGRAPHICS .. "icons/equipment_lcraft_charger_icon.png",
       icon_size = 64,
       flags = {},
-      placed_as_equipment_result = "lcraft-charger",
+      place_as_equipment_result = "lcraft-charger",
       subgroup = "equipment",
       order = "e[robotics]-a[personal-roboport-equipment]",
       stack_size = 20
@@ -168,7 +168,7 @@ if electriccraft_equipment_activated then
       icon_size = 64,
       subgroup = subgroup_hovercrafts_ehvt,
       order = "d2",
-      placed_as_equipment_result = "ehvt-equipment",
+      place_as_equipment_result = "ehvt-equipment",
       stack_size = 10
     },
     {
