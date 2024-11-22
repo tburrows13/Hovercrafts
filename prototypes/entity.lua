@@ -255,7 +255,9 @@ if laser_hovercraft_activated then
       filename = "__Hovercrafts__/audio/vehicle-motor.ogg",
       volume = 0.5
     },
-    match_speed_to_activity = false
+    match_speed_to_activity = false,
+    fade_in_ticks = 15,
+    fade_out_ticks = 15,
   }
   lcraft_entity.resistances = {
     { type = "fire", decrease = 7.5, percent = 30 },
