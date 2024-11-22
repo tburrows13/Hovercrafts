@@ -92,7 +92,7 @@ if laser_hovercraft_activated then
       icon_size = 256,
       effects = {
         unlock("laser-hovercraft"),
-        unlock("lcraft-charger"),
+        --unlock("lcraft-charger"),
       },
       prerequisites = {"laser-turret", "laser-rifle-2", "nuclear-power", "electric-hovercraft"},
       unit = {
@@ -110,4 +110,7 @@ if laser_hovercraft_activated then
       order = "z"
     },
   })
+  if not data.raw["battery-equipment"]["laserrifle-charger"] then
+    table.insert(data.raw.technology["laser-hovercraft"].effects, unlock("lcraft-charger"))
+  end
 end

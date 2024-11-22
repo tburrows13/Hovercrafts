@@ -384,7 +384,7 @@ script.on_nth_tick(3, function(event)
             local energy = 0
             local modules = 0
             for _, eq in pairs(vehicle.grid.equipment) do
-              if eq.name == "lcraft-charger" then
+              if eq.name == "lcraft-charger" or eq.name == "laserrifle-charger" then
                 energy = energy+eq.energy
                 modules = modules+1
                 --game.connected_players [playerid].print(eq.energy)
@@ -412,7 +412,7 @@ script.on_nth_tick(3, function(event)
               end
             end
             for _, eq in pairs(vehicle.grid.equipment) do
-              if eq.name == "lcraft-charger" then
+              if eq.name == "lcraft-charger" or eq.name == "laserrifle-charger" then
                 eq.energy = eq.energy - inserted*(ENERGY_PER_CHARGE/(2.5-techlevel*0.5))/modules
               end
             end
