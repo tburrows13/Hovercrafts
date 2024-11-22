@@ -31,6 +31,16 @@ hcraft_entity.effectivity = 1.3
 hcraft_entity.max_health = 500
 hcraft_entity.guns = {}
 hcraft_entity.terrain_friction_modifier = 0
+hcraft_entity.energy_source.smoke = {
+  {
+    name = "car-smoke",
+    deviation = {0.25, 0.25},
+    frequency = 200,
+    position = {0, 0.98},
+    starting_frame = 0,
+    starting_frame_deviation = 60
+  }
+}
 hcraft_entity.rotation_speed = 0.0060
 hcraft_entity.tank_driving = true
 hcraft_entity.weight = 2500
@@ -135,6 +145,16 @@ if missile_hovercraft_activated then
     type = "burner",
     fuel_categories = {"chemical"},
     fuel_inventory_size = 2,
+    smoke = {
+      {
+        name = "car-smoke",
+        deviation = {0.25, 0.25},
+        frequency = 200,
+        position = {0, 0.98},
+        starting_frame = 0,
+        starting_frame_deviation = 60
+      }
+    }
   }
   mcraft_entity.guns = {"hovercraft-missile-turret"}
   mcraft_entity.turret_animation = {

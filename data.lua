@@ -41,7 +41,7 @@ if mod_lasertank_active and not electric_hovercraft_activated and laser_hovercra
         name = "car-smoke",
         deviation = {0.25, 0.25},
         frequency = 200,
-        position = {0, 1.5},
+        position = {0, 0.98},
         starting_frame = 0,
         starting_frame_deviation = 60
       }
