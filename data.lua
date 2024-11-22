@@ -55,3 +55,31 @@ if mod_lasertank_active and not electric_hovercraft_activated and laser_hovercra
   }
   data.raw.car["laser-hovercraft"].working_sound = car_sounds
 end
+
+-- maybe in a future factorio version it will be possible to detect key down + up events
+
+--if settings.startup["hovercraft-drifting"].value == "new" then
+--	data:extend{
+--	{
+--		type="custom-input",
+--		name="hovercraft-braking-keybind",
+--		key_sequence="SPACE",
+--		linked_game_control = "shoot-enemy",
+--		action="lua",
+--	},
+--	{
+--		type="custom-input",
+--		name="hovercraft-braking-keybind-up",
+--		key_sequence="SHIFT",
+--		--linked_game_control = "shoot-enemy",
+--		action="lua",
+--	}
+--	}
+-- --script.on_event("hovercraft-braking-keybind", function(event)
+-- --  game.print("down: " ..tostring(event.tick))
+-- --end)
+-- --
+-- --script.on_event("hovercraft-braking-keybind-up", function(event)
+-- --  game.print("up: " ..tostring(event.tick))
+-- --end)
+--end
