@@ -1,6 +1,6 @@
 require("constants")
 
-local mod_lasertank_active = mods["laser_tanks"] or mods["laser_tanks_updated"] or false
+local mod_lasertank_active = (mods["laser_tanks"] or mods["laser_tanks_updated"])
 local mod_elec_engine_active = mod_lasertank_active and settings.startup["lasertanks-electric-engine"] and settings.startup["lasertanks-electric-engine"].value or false
 
 missile_hovercraft_activated = settings.startup["enable-missile-hovercraft"].value
@@ -26,7 +26,7 @@ if mod_lasertank_active and not electric_hovercraft_activated and laser_hovercra
   table.insert(data.raw.technology["laser-hovercraft"].prerequisites, "hovercraft")
   table.insert(data.raw.technology["laser-hovercraft"].effects, {type = "unlock-recipe", recipe = "ehvt-equipment"})
   table.remove(data.raw.recipe["laser-hovercraft"].ingredients, 1)
-  table.insert(data.raw.recipe["lcraft-recipe"].ingredients, {type = "item", name = "hovercraft", amount = 1})
+  table.insert(data.raw.recipe["laser-hovercraft"].ingredients, {type = "item", name = "hovercraft", amount = 1})
   data.raw["item-with-entity-data"]["laser-hovercraft"].icon = HCGRAPHICS .. "icons/hovercraft_lcraft_fueled_icon.png"
   data.raw["item-with-entity-data"]["laser-hovercraft"].icon_size = 64
   table.remove(data.raw.technology["laser-hovercraft"].effects, 2)

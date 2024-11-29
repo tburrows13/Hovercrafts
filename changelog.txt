@@ -1,6 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.0.4
+Date: 2024-11-28
+  Bugfixes:
+    - Fixed mod not loading when Laser Tank's electric engines option is disabled
+---------------------------------------------------------------------------------------------------
 Version: 2.0.3
-Date: ???
+Date: 2024-11-22
   Features:
     - Hovercrafts now have logistics requests
     - Hovercrafts now allow remote driving
